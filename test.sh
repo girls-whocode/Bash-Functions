@@ -69,8 +69,11 @@ echo -e "${M}declare ${W}-a ${W}myVar${EMK}=${EMB}\$${EMC}(${B}varSwitch ${M}opt
 echo -e "${EMW}The variable to be ${EMR}removed ${EMW}is ${EMB}\"${EMG}Number 2${EMB}\" ${W}new array ${EMC}\$myArr${EMK}="${NONE}${myArr[@]}
 echo -e ""${NONE}
 
-#options=($(varSwitch options[@] "Number 3" "off"))
-#echo "Clearing all values returns:"
+declare -a myArr=($(varSwitch options[@] "" "off"))
+echo -e "${EMK}# Testing removing all values of the array"${NONE}
+echo -e "${M}declare ${W}-a ${W}myVar${EMK}=${EMB}\$${EMC}(${B}varSwitch ${M}options${EMY}[${EMC}@${EMY}] ${R}\"${R}\" ${R}\"${W}off${R}\"${B})"${NONE}
+echo -e "${EMW}All values to be ${EMR}removed ${EMW}returns ${W}new array ${EMC}\$myArr${EMK}="${NONE}${myArr[@]}
+echo -e ""${NONE}
 
 options=(
 	true

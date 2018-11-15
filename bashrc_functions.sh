@@ -134,7 +134,7 @@ function varSwitch() {
         echo $varswitch_newvar
 	elif [ "${varswitch_toggleto}" == "off" ]; then
 		keys=("${!a[@]}")
-        for i in "${keys[@]::2}"; do unset "varswitch_options[$i]"; done
+        for i in "${keys[@]::2}"; do unset "varswitch_options[i]"; done
     elif [ "${varswitch_toggleto}" == "remove" ]; then
         for target in "${varswitch_currentvar}"; do
             for i in "${!varswitch_options[@]}"; do
