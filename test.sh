@@ -4,13 +4,6 @@ DIR="${BASH_SOURCE%/*}"
 if [[ ! -d "$DIR" ]]; then DIR="$PWD"; fi
 . "$DIR/bashrc_functions.sh"
 
-if [ -z "$PS1" ]; then
-  return
-fi
-
-PROMPT_COMMAND=bash_prompt_command
-bash_prompt
-
 options=(
 	"Number 1"
 	"Number 2"
@@ -31,12 +24,12 @@ myVar=$(varSwitch options[@] "Number 3" "previous")
 echo -e "${EMW}The ${EMR}previous ${EMW}value of ${EMB}\"${EMG}Number 3${EMB}\" ${EMW}is ${EMB}\"${EMC}$myVar${EMB}\""${NONE}
 
 # Test wrap around
-#myVar=$(varSwitch options[@] "Number 1" "next")
-#echo "The next value of \"Number 1\" is \"$myVar\""
+myVar=$(varSwitch options[@] "Number 1" "previous")
+echo -e "${EMW}The ${EMR}previous ${EMW}value of ${EMB}\"${EMG}Number 1${EMB}\" ${EMW}is ${EMB}\"${EMC}$myVar${EMB}\""${NONE}
 
 # Test ramdom var from array
 myVar=$(varSwitch options[@] "" "random")
-echo -e "${EMW}A ${EMR}rendom ${EMW}value of the options ${EMW}is ${EMB}\"${EMC}$myVar${EMB}\""${NONE}
+echo -e "${EMW}A ${EMR}random ${EMW}value of the options ${EMW}is ${EMB}\"${EMC}$myVar${EMB}\""${NONE}
 
 # Test getting the first variable of the array
 myVar=$(varSwitch options[@] "Number 3" "first")
@@ -51,6 +44,17 @@ declare -a myArr=$(varSwitch options[@] "Number 2" "remove")
 echo -e "${EMW}The variable to be ${EMR}removed ${EMW}is ${EMB}\"${EMG}Number 2${EMB}\""${NONE}
 echo ${myArr[@]}
 
+options=(
+	true
+	false
+)
+
+myVar=$(varSwitch options[@] false "toggle")
+echo -e "${EMW}The variable to be ${EMR}toggled ${EMW}is ${EMB}\"${EMG}false${EMB}\" ${EMW}is now ${EMB}\"${EMC}$myVar${EMB}\""${NONE}
+
+myVar=$(varSwitch options[@] true "toggle")
+echo -e "${EMW}The variable to be ${EMR}toggled ${EMW}is ${EMB}\"${EMG}true${EMB}\" ${EMW}is now ${EMB}\"${EMC}$myVar${EMB}\""${NONE}
+
 #options=($(varSwitch options[@] "Number 3" "off"))
 #echo "Clearing all values returns:"
 
@@ -60,6 +64,9 @@ echo ${myArr[@]}
 #    let "index++"
 #done
 
-colors
-colors.256
-colors.codes
+#PROMPT_COMMAND=bash_prompt_command
+
+#bash_prompt
+#colors
+#colors.256
+#colors.codes

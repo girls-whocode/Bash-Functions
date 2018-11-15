@@ -75,57 +75,6 @@ colors.codes() {
 	done
 }
 
-bash_prompt_command() {
-    RETURN=$?
-    # How many characters of the $PWD should be kept
-    local pwdmaxlen=45
-    # Indicate that there has been dir truncation
-    local trunc_symbol=".."
-    local dir=${PWD##*/}
-    pwdmaxlen=$(( ( pwdmaxlen < ${#dir} ) ? ${#dir} : pwdmaxlen ))
-    NEW_PWD=${PWD/#$HOME/\~}
-    local pwdoffset=$(( ${#NEW_PWD} - pwdmaxlen ))
-    if [ ${pwdoffset} -gt "0" ]; then
-        NEW_PWD=${NEW_PWD:$pwdoffset:$pwdmaxlen}
-        NEW_PWD=${trunc_symbol}/${NEW_PWD#*/}
-    fi
-    history -a
-    #EXIT_CODE='$(if [[ $RETURN = 0 ]]; then echo -ne ""; else echo -ne "\[$EMR\]$RETURN\[$NONE\] "; fi;)'
-}
-
-prompt.vcs.enable(){
-    PROMPT_VCS=1
-}
-prompt.vcs.disable(){
-    PROMPT_VCS=0
-}
-
-vcs(){
-    [ $PROMPT_VCS -eq "1" ] && echo -e $(vcprompt -f "${K} %n[${R}%b${EMG}%m${EMR}%u${K}]")
-}
-
-bash_prompt() {
-    case $TERM in
-        xterm*|rxvt*)
-            local TITLEBAR='\[\033]0;${SHORT_HOST} ${NEW_PWD}\007\]';;
-        *)
-            local TITLEBAR="";;
-    esac
-
-    local UC=$W                    # user's color
-    [ $UID -eq 0 ] && UC=$EMR      # root's color
-
-    local ARROW_COLOR=$EMR
-    [ $? -eq 0 ] && ARROW_COLOR=$EMG
-
-    PS1="\[${TITLEBAR}\
-    ${UC}\u\
-    \$(vcs) \
-    ${EMB}\${NEW_PWD} \
-    ${K} \
-    \[${NONE}\]\n\[${ARROW_COLOR}\]→ \[${NONE}\]"
-}
-
 function varSwitch() {
 	#local varswitch_toggleopts=("next" "previous" "random" "off" "first" "last" "toggle")
 	# next will get the next value from options
@@ -143,16 +92,14 @@ function varSwitch() {
 	if [ "${varswitch_toggleto}" == "next" ]; then
         while [ "$index" -lt "${#varswitch_options[@]}" ]; do
             if [ "${varswitch_options[$index]}" = "$varswitch_currentvar" ]; then
-                index=$((index + 1))
+                if [ "$index" -eq "$(( ${#varswitch_options[@]} - 1))" ]; then
+                    index=0
+                    break
+                fi
+                index=$(( index + 1 ))
                 break
             fi
-            # Wrap around if at the end of the array
-            if [ "$index" -eq "${#varswitch_options[@]}" ]; then
-                index=0
-                break
-            else
-                let "index++"
-            fi
+            let "index++"
         done
 
         varswitch_newvar=${varswitch_options[$index]}
@@ -164,16 +111,14 @@ function varSwitch() {
 	elif [ "${varswitch_toggleto}" == "previous" ]; then
         while [ "$index" -lt "${#varswitch_options[@]}" ]; do
             if [ "${varswitch_options[$index]}" = "$varswitch_currentvar" ]; then
-                index=$(index - 1)
+                if [ "$index" -eq 0 ]; then
+                    index="$(( ${#varswitch_options[@]} - 1))"
+                    break
+                fi
+                index=$(( index - 1 ))
                 break
             fi
-            # Wrap around if at the end of the array
-            if [ "$index" -eq "${#varswitch_options[@]}" ]; then
-                index="${#varswitch_options[@]}"
-                break
-            else
-                let "index++"
-            fi
+            let "index++"
         done
 
         varswitch_newvar=${varswitch_options[$index]}
@@ -211,7 +156,14 @@ function varSwitch() {
         varswitch_newvar=${varswitch_options[${#varswitch_options[@]}-1]}
 		echo $varswitch_newvar
 	elif [ "${varswitch_toggleto}" == "toggle" ]; then
-		return $varswitch_variable
+        if [ "${#varswitch_options[@]}" -eq 2 ]; then
+            varA=${varswitch_options[0]}
+            varB=${varswitch_options[1]}
+            [ $varswitch_currentvar = ${varswitch_options[1]} ] && varswitch_newvar=$varA || varswitch_newvar=$varB
+		    echo $varswitch_newvar
+        else
+            echo "Array has too many values to toggle between, max is 2"
+        fi
     else
         echo "invalid varSwitch format"
 	fi
