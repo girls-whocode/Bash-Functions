@@ -8,6 +8,51 @@ pause() {
 	read fackEnterKey
 }
 
+colors() {
+	printf "\n${NONE}Foreground color codes:\n"
+	printf "${NONE}{NONE}" && echo "	${NONE}"
+	printf "${W}{W}" && echo -n "	${W}" && printf "${EMW}	{EMW}	${EMW}\n"
+	printf "${B}{B}" && echo -n "	${B}" && printf "${EMB}	{EMB}	${EMB}\n"
+	printf "${G}{G}" && echo -n "	${G}" && printf "${EMG}	{EMG}	${EMG}\n"
+	printf "${C}{C}" && echo -n "	${C}" && printf "${EMC}	{EMG}	${EMC}\n"
+	printf "${R}{R}" && echo -n "	${R}" && printf "${EMR}	{EMR}	${EMR}\n"
+	printf "${M}{M}" && echo -n "	${M}" && printf "${EMM}	{EMM}	${EMM}\n"
+	printf "${Y}{Y}" && echo -n "	${Y}" && printf "${EMY}	{EMY}	${EMY}\n"
+	printf "${K}{K}" && echo -n "	${K}" && printf "${EMK}	{EMK}	${EMK}\n"
+	printf "\n${NONE}Background color codes:\n"
+	printf "${NONE}${BGK}{BGK}" 		&& echo -n "	${BGK}" && printf "${NONE}\n"
+	printf "${NONE}${BGR}{BGR}" 		&& echo -n "	${BGR}" && printf "${NONE}\n"
+	printf "${NONE}${K}${BGG}{BGG}" && echo -n "	${BGG}" && printf "${NONE}\n"
+	printf "${NONE}${K}${BGY}{BGY}" && echo -n "	${BGY}" && printf "${NONE}\n"
+	printf "${NONE}${BGB}{BGB}" 		&& echo -n "	${BGB}" && printf "${NONE}\n"
+	printf "${NONE}${BGM}{BGM}" 		&& echo -n "	${BGM}" && printf "${NONE}\n"
+	printf "${NONE}${K}${BGC}{BGC}" && echo -n "	${BGC}" && printf "${NONE}\n"
+	printf "${NONE}${K}${BGW}{BGW}" && echo -n "	${BGW}" && printf "${NONE}\n"
+}
+
+colors.256() {
+	for fgbg in 38 48 ; do
+		for color in {0..256} ; do
+			printf "\e[${fgbg};5;${color}m ${color}\t\e[0m"
+			if [ $((($color + 1) % 10)) == 0 ] ; then
+				printf "\n"
+			fi
+		done
+		echo
+	done
+}
+
+colors.codes() {
+	for clbg in {40..47} {100..107} 49 ; do
+		for clfg in {30..37} {90..97} 39 ; do
+			for attr in 0 1 2 4 5 7 ; do
+				printf "\e[${attr};${clbg};${clfg}m ^[${attr};${clbg};${clfg}m \e[0m"
+			done
+			echo
+		done
+	done
+}
+
 menu1Opt1() {
 	options=(
 		"Number 1"
@@ -127,15 +172,18 @@ showMenu1() {
 	echo -e "${EMK}~~~~~~~~~~~~~~~~~~~~~"${NONE}
 	echo -e "${EMC}[${EMG}1${EMC}] ${NONE}Show varSwitch examples"
 	echo -e "${EMC}[${EMG}2${EMC}] ${NONE}Show color samples"
+	echo -e "${EMC}[${EMG}3${EMC}] ${NONE}Show terminal values"
+	echo -e "${EMC}[${EMG}?${EMC}] ${NONE}Help"
 	echo -e "${EMC}[${EMG}E${EMC}] ${NONE}Exit"
-	echo -e "${EMW}Enter choice ${EMC}[${EMG}1 ${EMK}- ${EMG}2 ${NONE}or ${R}[${EMR}E${R}]${EMC}]"${NONE} && read choice
+	echo -e "${EMW}Enter choice ${EMC}[${EMG}1 ${EMK}- ${EMG}3 ${NONE}or ${R}[${EMR}E${EMK}/${EMR}?${R}]${EMC}]"${NONE} && read choice
 	
 	while true
 	do
 		case ${choice^^} in
 			1) menu1Opt1;;
 			2) showColorMenu;;
-			"H") showHelpMenu;;
+			3) terminfo;;
+			"?") showHelpMenu;;
 			"E") exit 0;;
 			*)
 				echo -e "${EMR}Invalid option...${NONE}" && sleep 1
@@ -173,7 +221,9 @@ showColorMenu() {
 }
 
 showHelpMenu(){
-	return
+	$DIR/bashrc_function.sh -h
+	pause
+	showMenu1
 }
 
   #== Main part ==#

@@ -7,24 +7,23 @@
 #+    ${SCRIPT_NAME} [-hv] [-o[file]] args ...
 #%
 #% DESCRIPTION
-#%    This is a script template
-#%    to start any good shell script.
+#%    This is a BASH framwork to assist with building advanced BASH scripts
 #%
 #% OPTIONS
-#%    -o [file], --output=[file]    Set log file (default=/dev/null)
-#%                                  use DEFAULT keyword to autoname file
-#%                                  The default value is /dev/null.
-#%    -t, --timelog                 Add timestamp to log ("+%y/%m/%d@%H:%M:%S")
-#%    -x, --ignorelock              Ignore if lock file exists
-#%    -h, --help                    Print this help
-#%    -v, --version                 Print script information
+#%      -o [file], --output=[file]      Set log file (default=/dev/null)
+#%                                              use DEFAULT keyword to autoname file
+#%                                              The default value is /dev/null.
+#%       -t, --timelog                       Add timestamp to log ("+%y/%m/%d@%H:%M:%S")
+#%      -x, --ignorelock                   Ignore if lock file exists
+#%      -h, --help                           Print this help
+#%      -v, --version                       Print script information
 #%
 #% EXAMPLES
 #%    ${SCRIPT_NAME} -o DEFAULT arg1 arg2
 #%
 #================================================================
 #- IMPLEMENTATION
-#-    version         ${SCRIPT_NAME} (https://github.com/jessicakennedy1028/Bash-Functions) 0.0.2
+#-    version         ${SCRIPT_NAME} (https://github.com/jessicakennedy1028/Bash-Functions) 0.0.3
 #-    author          Jessica Brown-Kennedy
 #-    copyright       Copyright (c) http://www.jbrowns.com
 #-    license         GNU General Public License
@@ -32,11 +31,14 @@
 #-
 #================================================================
 #  HISTORY
-#     2018/11/17 : jessica.kennedy : Added menu system in test.sh
-#                                                Added Header to Scripts
-#                                                Added Help System
-#                                                Added loggin System
-#     2018/11/14 : jessica.kennedy : First Creation
+#       2018/11/15 : jessica.kennedy : Added boilerplate template
+#                                                  Added  logging, testing, and parrallel command execution
+#                                                  Added  debugging options
+#       2018/11/14 : jessica.kennedy : Added menu system in test.sh
+#                                                  Added Header to Scripts
+#                                                  Added Help System
+#                                                  Added loggin System
+#       2018/11/14 : jessica.kennedy : First Creation
 # 
 #================================================================
 #  DEBUG OPTION
@@ -46,88 +48,88 @@
 #================================================================
 # END_OF_HEADER
 #================================================================
-trap 'error "${SCRIPT_NAME}: FATAL ERROR at $(date "+%HH%M") (${SECONDS}s): Interrupt signal intercepted! Exiting now..."
-	2>&1 | tee -a ${fileLog:-/dev/null} >&2 ;
-	exit 99;' INT QUIT TERM
-trap 'cleanup' EXIT
 
-NONE="\033[0m"    # unsets color to term's fg color
+initColors() {
+    NONE="\033[0m"    # unsets color to term's fg color
 
-# regular colors
-K="\033[0;30m"    # black
-R="\033[0;31m"    # red
-G="\033[0;32m"    # green
-Y="\033[0;33m"    # yellow
-B="\033[0;34m"    # blue
-M="\033[0;35m"    # magenta
-C="\033[0;49;96m" # cyan
-W="\033[0;37m"    # white
+    # regular colors
+    K="\033[0;30m"    # black
+    R="\033[0;31m"    # red
+    G="\033[0;32m"    # green
+    Y="\033[0;33m"    # yellow
+    B="\033[0;34m"    # blue
+    M="\033[0;35m"    # magenta
+    C="\033[0;49;96m" # cyan
+    W="\033[0;37m"    # white
 
-# emphasized (bolded) colors
-EMK="\033[1;30m"
-EMR="\033[1;31m"
-EMG="\033[1;32m"
-EMY="\033[1;33m"
-EMB="\033[1;34m"
-EMM="\033[1;35m"
-EMC="\033[1;49;96m"
-EMW="\033[1;37m"
+    # emphasized (bolded) colors
+    EMK="\033[1;30m"
+    EMR="\033[1;31m"
+    EMG="\033[1;32m"
+    EMY="\033[1;33m"
+    EMB="\033[1;34m"
+    EMM="\033[1;35m"
+    EMC="\033[1;49;96m"
+    EMW="\033[1;37m"
 
-# background colors
-BGK="\033[40m"
-BGR="\033[41m"
-BGG="\033[42m"
-BGY="\033[43m"
-BGB="\033[44m"
-BGM="\033[45m"
-BGC="\033[46m"
-BGW="\033[47m"
-
-logFile="$HOME/Library/Logs/${scriptBasename}.log"
-
-colors() {
-	printf "\n${NONE}Foreground color codes:\n"
-	printf "${NONE}{NONE}" && echo "	${NONE}"
-	printf "${W}{W}" && echo -n "	${W}" && printf "${EMW}	{EMW}	${EMW}\n"
-	printf "${B}{B}" && echo -n "	${B}" && printf "${EMB}	{EMB}	${EMB}\n"
-	printf "${G}{G}" && echo -n "	${G}" && printf "${EMG}	{EMG}	${EMG}\n"
-	printf "${C}{C}" && echo -n "	${C}" && printf "${EMC}	{EMG}	${EMC}\n"
-	printf "${R}{R}" && echo -n "	${R}" && printf "${EMR}	{EMR}	${EMR}\n"
-	printf "${M}{M}" && echo -n "	${M}" && printf "${EMM}	{EMM}	${EMM}\n"
-	printf "${Y}{Y}" && echo -n "	${Y}" && printf "${EMY}	{EMY}	${EMY}\n"
-	printf "${K}{K}" && echo -n "	${K}" && printf "${EMK}	{EMK}	${EMK}\n"
-	printf "\n${NONE}Background color codes:\n"
-	printf "${NONE}${BGK}{BGK}" 		&& echo -n "	${BGK}" && printf "${NONE}\n"
-	printf "${NONE}${BGR}{BGR}" 		&& echo -n "	${BGR}" && printf "${NONE}\n"
-	printf "${NONE}${K}${BGG}{BGG}" && echo -n "	${BGG}" && printf "${NONE}\n"
-	printf "${NONE}${K}${BGY}{BGY}" && echo -n "	${BGY}" && printf "${NONE}\n"
-	printf "${NONE}${BGB}{BGB}" 		&& echo -n "	${BGB}" && printf "${NONE}\n"
-	printf "${NONE}${BGM}{BGM}" 		&& echo -n "	${BGM}" && printf "${NONE}\n"
-	printf "${NONE}${K}${BGC}{BGC}" && echo -n "	${BGC}" && printf "${NONE}\n"
-	printf "${NONE}${K}${BGW}{BGW}" && echo -n "	${BGW}" && printf "${NONE}\n"
+    # background colors
+    BGK="\033[40m"
+    BGR="\033[41m"
+    BGG="\033[42m"
+    BGY="\033[43m"
+    BGB="\033[44m"
+    BGM="\033[45m"
+    BGC="\033[46m"
+    BGW="\033[47m"
 }
 
-colors.256() {
-	for fgbg in 38 48 ; do
-		for color in {0..256} ; do
-			printf "\e[${fgbg};5;${color}m ${color}\t\e[0m"
-			if [ $((($color + 1) % 10)) == 0 ] ; then
-				printf "\n"
-			fi
-		done
-		echo
-	done
-}
+initVariables() {
+    logFile="$HOME/Library/Logs/${scriptBasename}.log"
 
-colors.codes() {
-	for clbg in {40..47} {100..107} 49 ; do
-		for clfg in {30..37} {90..97} 39 ; do
-			for attr in 0 1 2 4 5 7 ; do
-				printf "\e[${attr};${clbg};${clfg}m ^[${attr};${clbg};${clfg}m \e[0m"
-			done
-			echo
-		done
-	done
+    #== general variables ==#
+    SCRIPT_NAME="$(basename ${0})" # scriptname without path
+    SCRIPT_DIR="$( cd $(dirname "$0") && pwd )" # script directory
+    SCRIPT_FULLPATH="${SCRIPT_DIR}/${SCRIPT_NAME}"
+
+    SCRIPT_ID="$(scriptinfo | grep script_id | tr -s ' ' | cut -d' ' -f3)"
+    SCRIPT_HEADSIZE=$(grep -sn "^# END_OF_HEADER" ${0} | head -1 | cut -f1 -d:)
+
+    SCRIPT_UNIQ="${SCRIPT_NAME%.*}.${SCRIPT_ID}.${HOSTNAME%%.*}"
+    SCRIPT_UNIQ_DATED="${SCRIPT_UNIQ}.$(date "+%y%m%d%H%M%S").${$}"
+
+    SCRIPT_DIR_TEMP="/tmp" # Make sure temporary folder is RW
+    SCRIPT_DIR_LOCK="${SCRIPT_DIR_TEMP}/${SCRIPT_UNIQ}.lock"
+
+    SCRIPT_TIMELOG_FLAG=0
+    SCRIPT_TIMELOG_FORMAT="+%y/%m/%d@%H:%M:%S"
+    SCRIPT_TIMELOG_FORMAT_PERL="$(echo ${SCRIPT_TIMELOG_FORMAT#+} | sed 's/%y/%Y/g')"
+
+    HOSTNAME="$(hostname)"
+    FULL_COMMAND="${0} $*"
+    EXEC_DATE=$(date "+%y%m%d%H%M%S")
+    EXEC_ID=${$}
+    GNU_AWK_FLAG="$(awk --version 2>/dev/null | head -1 | grep GNU)"
+    PERL_FLAG="$(perl -v 1>/dev/null 2>&1 && echo 1)"
+
+    #== file variables ==#
+    filePid="${SCRIPT_DIR_LOCK}/pid"
+    fileLog="/dev/null"
+
+    #== function variables ==#
+    ipcf_file="${SCRIPT_DIR_LOCK}/${SCRIPT_UNIQ_DATED}.tmp.ipcf";
+    ipcf_IFS="|" ; ipcf_return="" ;
+    rc=0 ; countErr=0 ; countWrn=0 ;
+
+    #== option variables ==#
+    flagOptErr=0
+    flagOptLog=0
+    flagOptTimeLog=0
+    flagOptIgnoreLock=0
+
+    flagTmp=0
+    flagDbg=1
+    flagScriptLock=0
+    flagMainScriptStart=0
 }
 
 varSwitch() {
@@ -259,23 +261,43 @@ check_cre_file() {
 	return 0
 }
 
-info() { fecho INF "${*}"; }
-warning() { [[ "${flagMainScriptStart}"  -eq 1 ]] && ipcf_save "WRN" "0" "${*}" ; fecho WRN "WARNING: ${*}" 1>&2 ; }
-error() { [[ "${flagMainScriptStart}" -eq 1 ]] && ipcf_save "ERR" "0" "${*}" ; fecho ERR "ERROR: ${*}" 1>&2 ; }
-debug() { [[ ${flagDbg} -ne 0 ]] && fecho DBG "DEBUG: ${*}" 1>&2; }
+info() {
+    fecho INF "${*}";
+}
 
-tag() { [[ "x$1" == "x--eol" ]] && awk '$0=$0" ['$2']"; fflush();' || awk '$0="['$1'] "$0; fflush();' ; }
-infotitle() { _txt="-==# ${*} #==-"; _txt2="-==#$( echo " ${*} " | tr '[:print:]' '#' )#==-" ;
+warning() {
+    [[ "${flagMainScriptStart}"  -eq 1 ]] && ipcf_save "WRN" "0" "${*}" ; fecho WRN "WARNING: ${*}" 1>&2;
+}
+
+error() {
+    [[ "${flagMainScriptStart}" -eq 1 ]] && ipcf_save "ERR" "0" "${*}" ; fecho ERR "ERROR: ${*}" 1>&2;
+}
+
+debug() {
+    [[ ${flagDbg} -ne 0 ]] && fecho DBG "DEBUG: ${*}" 1>&2;
+}
+
+tag() {
+    [[ "x$1" == "x--eol" ]] && awk '$0=$0" ['$2']"; fflush();' || awk '$0="['$1'] "$0; fflush();';
+}
+
+infotitle() {
+    _txt="-==# ${*} #==-"; _txt2="-==#$( echo " ${*} " | tr '[:print:]' '#' )#==-" ;
 	info "$_txt2"; info "$_txt"; info "$_txt2"; 
 }
 
-  #== startup and finish functions ==#
-cleanup() { [[ flagScriptLock -ne 0 ]] && [[ -e "${SCRIPT_DIR_LOCK}" ]] && rm -fr ${SCRIPT_DIR_LOCK}; }
-scriptstart() { trap 'kill -TERM ${$}; exit 99;' TERM
+#== startup and finish functions ==#
+cleanup() {
+    [[ flagScriptLock -ne 0 ]] && [[ -e "${SCRIPT_DIR_LOCK}" ]] && rm -fr ${SCRIPT_DIR_LOCK};
+}
+
+scriptstart() {
+    trap 'kill -TERM ${$}; exit 99;' TERM
 	info "${SCRIPT_NAME}: Start $(date "+%y/%m/%d@%H:%M:%S") with pid ${EXEC_ID} by ${USER}@${HOSTNAME}:${PWD}"\
 		$( [[ ${flagOptLog} -eq 1 ]] && echo " (LOG: ${fileLog})" || echo " (NOLOG)" );
 	flagMainScriptStart=1 && ipcf_save "PRG" "${EXEC_ID}" "${FULL_COMMAND}"
 }
+
 scriptfinish() {
 	kill $(jobs -p) 1>/dev/null 2>&1 && warning "${SCRIPT_NAME}: Some bg jobs have been killed" ;
 	[[ ${flagOptLog} -eq 1 ]] && info "${SCRIPT_NAME}: LOG file can be found here: ${fileLog}" ;
@@ -286,10 +308,16 @@ scriptfinish() {
 }
 
 #== usage functions ==#
-usage() { printf "Usage: "; scriptinfo usg ; }
-usagefull() { scriptinfo ful ; }
+usage() {
+    printf "Usage: "; scriptinfo usg;
+}
 
-scriptinfo() { headFilter="^#-"
+usagefull() {
+    scriptinfo ful;
+}
+
+scriptinfo() {
+    headFilter="^#-"
 	[[ "$1" = "usg" ]] && headFilter="^#+"
 	[[ "$1" = "ful" ]] && headFilter="^#[%+]"
 	[[ "$1" = "ver" ]] && headFilter="^#-"
@@ -447,63 +475,148 @@ assert_rc() {
     return $rc; 
 }
 
-#============================
-#  FILES AND VARIABLES
-#============================
+terminfo() {
+    # make OPTIND local to prevent odd behaviour with getops when running a function multiple times
+    local OPTIND v
+    local _verbose=0
 
-  #== general variables ==#
-SCRIPT_NAME="$(basename ${0})" # scriptname without path
-SCRIPT_DIR="$( cd $(dirname "$0") && pwd )" # script directory
-SCRIPT_FULLPATH="${SCRIPT_DIR}/${SCRIPT_NAME}"
+    while getopts "v" OPTION
+    do
+        case $OPTION in
+        v) _verbose=1
+            ;;
+        esac
+    done
 
-SCRIPT_ID="$(scriptinfo | grep script_id | tr -s ' ' | cut -d' ' -f3)"
-SCRIPT_HEADSIZE=$(grep -sn "^# END_OF_HEADER" ${0} | head -1 | cut -f1 -d:)
+    # OPTIND = The value of the last option argument processed by the getopts builtin command
+    shift "$((OPTIND-1))"
 
-SCRIPT_UNIQ="${SCRIPT_NAME%.*}.${SCRIPT_ID}.${HOSTNAME%%.*}"
-SCRIPT_UNIQ_DATED="${SCRIPT_UNIQ}.$(date "+%y%m%d%H%M%S").${$}"
+    # get the process ID for the current shell
+    local pid=$$
 
-SCRIPT_DIR_TEMP="/tmp" # Make sure temporary folder is RW
-SCRIPT_DIR_LOCK="${SCRIPT_DIR_TEMP}/${SCRIPT_UNIQ}.lock"
+    # search for the top-most process parent, extracting the command
+    while true; do
 
-SCRIPT_TIMELOG_FLAG=0
-SCRIPT_TIMELOG_FORMAT="+%y/%m/%d@%H:%M:%S"
-SCRIPT_TIMELOG_FORMAT_PERL="$(echo ${SCRIPT_TIMELOG_FORMAT#+} | sed 's/%y/%Y/g')"
+        # store the last pid, so we can recover it when we hit the root process
+        lastpid=$pid
+        # get the parent pid, xargs to trim whitespace off
+        pid=$(ps -h -o ppid= -p $pid 2>/dev/null | xargs)
 
-HOSTNAME="$(hostname)"
-FULL_COMMAND="${0} $*"
-EXEC_DATE=$(date "+%y%m%d%H%M%S")
-EXEC_ID=${$}
-GNU_AWK_FLAG="$(awk --version 2>/dev/null | head -1 | grep GNU)"
-PERL_FLAG="$(perl -v 1>/dev/null 2>&1 && echo 1)"
+        # if we hit root pid (1), jump out of the loop
+        [[ $(echo $pid) == 1 ]] && pid=$lastpid && break
 
-  #== file variables ==#
-filePid="${SCRIPT_DIR_LOCK}/pid"
-fileLog="/dev/null"
+        # get the full executable path
+        comm=$(ps -h -o comm= -p $pid 2>/dev/null)
+        # basename gets only the executable name
+        base=`basename "${comm}" 2>/dev/null`
 
-  #== function variables ==#
-ipcf_file="${SCRIPT_DIR_LOCK}/${SCRIPT_UNIQ_DATED}.tmp.ipcf";
-ipcf_IFS="|" ; ipcf_return="" ;
-rc=0 ; countErr=0 ; countWrn=0 ;
+    done
 
-  #== option variables ==#
-flagOptErr=0
-flagOptLog=0
-flagOptTimeLog=0
-flagOptIgnoreLock=0
+    # find the app version number if on a Mac
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        dotapp=".app"
+        if [[ $comm == *".app"* ]]; then
+        # parse out the beginning of the path, up to xxx.app -- bash-foo
+        macapp="${comm%".app"*}.app"
+        # use plutil to parse out app's info plist, which is XML, blech
+        version=$(plutil -p "${macapp}/Contents/Info.plist" | grep "CFBundleShortVersionString")
+        # if there is a value, then get the real version number
+        if [[ $? -ne 0 ]]; then
+            version=$(plutil -p "${macapp}/Contents/Info.plist" | grep "CFBundleVersion")
+        fi
+        # parse out the digits
+        version=$(echo $version | grep -o '"[[:digit:].]*"' | sed 's/"//g')
+        fi
+    fi
 
-flagTmp=0
-flagDbg=1
-flagScriptLock=0
-flagMainScriptStart=0
+    # print the info - in color!
+    B="\033[0;34m"    # blue
+    C="\033[0;49;96m" # cyan
+    W="\033[0;37m"    # white
+
+    printf "\n${C}Application${B}: ${W}${base}"
+    printf "\n${C}Process ID${B}:  ${W}${pid}"
+    test ${version+x} &&
+        printf "\n${C}Version${B}:     ${W}${version}"
+    if [[ $_verbose -ne 0 ]]; then
+        test ${macapp+x} &&
+        printf "\n${C}Full Path${B}:   ${W}${macapp}"
+        # TODO: maybe add some more info here
+    fi
+    printf "\n\n"
+}
+
+# Minimise terminal window to Dock
+function mintw() { printf "\e[2t"; return 0; }
+
+# Send Terminal window to background
+function bgtw() { printf "\e[6t"; return 0; }
+
+function hidetw() {
+    /usr/bin/osascript -e 'tell application "System Events" to set visible of some item of ( get processes whose name = "Terminal" ) to false'
+    return 0
+}
+
+# positive integer test (including zero)
+function positive_int() { return $(test "$@" -eq "$@" > /dev/null 2>&1 && test "$@" -ge 0 > /dev/null 2>&1); }
+
+# move the Terminal window
+function mvtw() {
+    if [[ $# -eq 2 ]] && $(positive_int "$1") && $(positive_int "$2"); then
+        printf "\e[3;${1};${2};t"
+        return 0
+    fi
+    return 1
+}
+
+# resize the Terminal window
+function sizetw() {
+    if [[ $# -eq 2 ]] && $(positive_int "$1") && $(positive_int "$2"); then
+        printf "\e[8;${1};${2};t"
+        /usr/bin/clear
+        return 0
+    fi
+    return 1
+}
+
+# full screen
+function fullscreen() { printf "\e[3;0;0;t\e[8;0;0t"; /usr/bin/clear; return 0; }
+
+# default screen
+function defaultscreen() { printf "\e[8;35;150;t"; printf "\e[3;300;240;t"; /usr/bin/clear; return 0; }
+
+# max columns
+function maxc() { printf "\e[3;0;0;t\e[8;50;0t"; /usr/bin/clear; return 0; }
+
+# max rows
+function maxr() { printf "\e[3;0;0;t\e[8;0;100t"; /usr/bin/clear; return 0; }
+
+# show number of lines & columns
+function lc() { printf "lines: $(/usr/bin/tput lines)\ncolums: $(/usr/bin/tput cols)\n"; return 0; }
+
+# open a new Terminal window in same location as current directory
+unset -f newin
+function newin() {
+    /bin/pwd | /usr/bin/pbcopy
+    /usr/bin/open -a Terminal
+    /usr/bin/osascript -e 'tell application "Terminal" to do script with command "cd \"$(/usr/bin/pbpaste)\"; echo \" \" | /usr/bin/pbcopy; /usr/bin/clear"'
+    return 0
+}
+
+trap 'error "${SCRIPT_NAME}: FATAL ERROR at $(date "+%HH%M") (${SECONDS}s): Interrupt signal intercepted! Exiting now..." 2>&1 | tee -a ${fileLog:-/dev/null} >&2;exit 99;' INT QUIT TERM
+trap 'cleanup' EXIT
+
+initColors
+initVariables
 
 #============================
 #  PARSE OPTIONS WITH GETOPTS
 #============================
 
-  #== set short options ==#
+#== set short options ==#
 SCRIPT_OPTS=':o:txhv-:'
 
-  #== set long options associated with short one ==#
+#== set long options associated with short one ==#
 typeset -A ARRAY_OPTS
 ARRAY_OPTS=(
 	[timelog]=t
